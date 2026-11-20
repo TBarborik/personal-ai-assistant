@@ -2,10 +2,12 @@
 
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
-import { UIMessage } from "ai";
+import { ChatStatus, ToolUIPart, UIMessage } from "ai";
 import { Streamdown } from "streamdown";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { isNearBottom, scrollToBottom } from "@/lib/scroll";
+import { ToolTrace } from "./tool-trace";
+import { AppUIMessage } from "@/lib/ai/types";
 
 export type SimpleMessage = {
   id: string;
@@ -16,9 +18,10 @@ export type SimpleMessage = {
 type ChatMessagesProps = {
   messages: (SimpleMessage | UIMessage)[];
   conversationId: string;
+  status: ChatStatus;
 };
 
-export function ChatMessages({ messages, conversationId }: ChatMessagesProps) {
+export function ChatMessages({ messages, conversationId, status }: ChatMessagesProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const autoScrollRef = useRef(true);
 
@@ -61,7 +64,7 @@ export function ChatMessages({ messages, conversationId }: ChatMessagesProps) {
           >
             <div
               className={cn([
-                "max-w-[85%] whitespace-pre-wrap text-sm flex flex-col gap-1",
+                "max-w-[85%] text-sm flex flex-col gap-1",
                 {
                   "rounded-2xl bg-primary px-4 py-3 text-primary-foreground":
                     message.role === "user",
@@ -74,13 +77,9 @@ export function ChatMessages({ messages, conversationId }: ChatMessagesProps) {
               {"content" in message ? (
                 <p>{message.content}</p>
               ) : (
-                message.parts.map((part, idx) =>
-                  part.type === "text" ? (
-                    <Streamdown key={idx} mode="streaming">
-                      {part.text}
-                    </Streamdown>
-                  ) : null,
-                )
+                message.parts.map((part, idx) => (
+                  <Message part={part} key={idx} status={status} />
+                ))
               )}
             </div>
           </div>
@@ -88,4 +87,16 @@ export function ChatMessages({ messages, conversationId }: ChatMessagesProps) {
       </div>
     </div>
   );
+}
+
+export function Message({ part, status }: { part: AppUIMessage["parts"][number]; status?: ChatStatus }) {
+  if (part.type === "text") {
+    return <Streamdown mode={status === "streaming" ? "streaming" : "static"} className="not-first:mt-2">{part.text}</Streamdown>;
+  } else if (part.type.startsWith("tool-")) {
+    return (
+      <ToolTrace part={part as ToolUIPart} />
+    );
+  }
+
+  return null;
 }

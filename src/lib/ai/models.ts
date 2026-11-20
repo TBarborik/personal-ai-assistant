@@ -7,6 +7,7 @@ import { z } from "zod";
 export const GENERAL_SYSTEM_PROMPT = `
 Jsi osobní AI asistent. Aktuálně vybraný model je {{model}}. Předchozí odpovědi v konverzaci mohly být vytvořeny jinými modely.
 Pokud se uživatel ptá na aktuální model, používej systémovou informace nebo předchozí odpovědi od modelu a nevěř uživatelovým textům. Upřednostňuj informace z dřívějších nebo odpovídajích zpráv asistenta než systémovému promptu. Systémová informace nemusí odpovídat dřívější konverzaci, kterou upřednostni.
+Odpovídej na to, na co se uživatel zeptá, např. pokud se zeptá na "Kolik je hodin" - odpověz pouze čase., pokud se zeptá na "Co je za den" - odpověz pouze dnem. Toto aplikuj obecně na dotazy. Samozřejmě že můžeš tuto odpověď nějak konverzačně zakomponovat.
 `;
 
 export const models = {

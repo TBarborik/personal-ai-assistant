@@ -1,4 +1,7 @@
 import { GENERAL_SYSTEM_PROMPT, models, requestSchema } from "@/lib/ai/models";
+import { tools } from "@/lib/ai/tools";
+import { getCurrentTime } from "@/lib/ai/tools/get-current-time";
+import { webSearch } from "@/lib/ai/tools/web-search";
 import { saveMessage } from "@/lib/db/messages";
 import { prisma } from "@/lib/db/prisma";
 import {
@@ -6,6 +9,7 @@ import {
   convertToModelMessages,
   createUIMessageStreamResponse,
   pruneMessages,
+  stepCountIs,
   streamText,
   toUIMessageStream,
   validateUIMessages,
@@ -66,11 +70,13 @@ export async function POST(request: Request) {
       messages: await convertToModelMessages(validatedMessages),
       reasoning: "all",
     }),
-    maxOutputTokens: 1_000,
+    maxOutputTokens: 5_000,
     instructions: GENERAL_SYSTEM_PROMPT.replaceAll(
       "{{model}}",
       models[model].modelId,
     ),
+    tools,
+    stopWhen: stepCountIs(5)
   });
 
   return createUIMessageStreamResponse({
@@ -87,6 +93,6 @@ export async function POST(request: Request) {
           await saveMessage(conversationId, responseMessage);
       },
     }),
-    consumeSseStream: consumeStream
+    consumeSseStream: consumeStream,
   });
 }

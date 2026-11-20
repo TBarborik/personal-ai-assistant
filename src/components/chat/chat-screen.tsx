@@ -89,7 +89,7 @@ export function ChatScreen({ id, initialMessages }: ChatScreenProps) {
 
   return (
     <>
-      <ChatMessages messages={messages} conversationId={id} />
+      <ChatMessages messages={messages} conversationId={id} status={status} />
       {error && (
         <Alert>
           <AlertTitle>Chyba</AlertTitle>
