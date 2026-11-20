@@ -11,28 +11,30 @@ export const currentWeather = tool({
   description:
     "Get weather info based on latitude and longitude from open-meteo.com.",
   inputSchema: z.object({
-    latitude: z.number(),
-    longitude: z.number(),
+    latitude: z.number().min(-90).max(90),
+    longitude: z.number().min(-180).max(180),
   }),
   execute: async ({ latitude, longitude }) => {
-    const cachedKey = JSON.stringify({ latitude, longitude });
+    const cachedKey = JSON.stringify({
+      latitude: latitude.toFixed(3),
+      longitude: longitude.toFixed(3),
+    });
 
     const cached = currentWeatherCache.get(cachedKey);
     if (cached !== undefined) return cached;
 
-    console.log(`${API_URL}&latitude=${latitude}&longitude=${longitude}`);
+    const url = new URL(API_URL);
+    url.searchParams.set("latitude", latitude.toString());
+    url.searchParams.set("longitude", longitude.toString());
 
-    const response = await fetch(
-      `${API_URL}&latitude=${latitude}&longitude=${longitude}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        signal: AbortSignal.timeout(10_000),
-        cache: "no-store",
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      signal: AbortSignal.timeout(10_000),
+      cache: "no-store",
+    });
 
     if (!response.ok) {
       throw new Error(`Current weather search failed: ${response.status}.`);
