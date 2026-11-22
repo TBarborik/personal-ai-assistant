@@ -1,4 +1,4 @@
-import { Clock, CloudSun, FileSearch, Globe, LucideIcon, Wrench } from "lucide-react";
+import { Clock, CloudSun, FileSearch, Globe, LucideIcon, MapPinSearch, Wrench } from "lucide-react";
 import { ComponentType } from "react";
 import { WebSearchDetails } from "./tool-details/web-search-details";
 
@@ -40,6 +40,12 @@ export const toolConfig = {
     running: "Zjisťuji počasí...",
     completed: "Počasí zjištěno",
     failed: "Nepodařilo se zjistit počasí"
+  },
+  ipLocationData: {
+    icon: MapPinSearch,
+    running: "Získávám lokalizační data...",
+    completed: "Lokalizace zjištěna",
+    failed: "Nepodařilo získat lokalizační data"
   }
 } satisfies Record<string, ToolUiConfig>
 
