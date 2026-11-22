@@ -56,6 +56,7 @@ export function ChatInput({ onSend, onStop, status }: ChatInputProps) {
           onKeyDown={handleKeyDown}
           rows={2}
           className="max-h-40 min-h-12 resize-none"
+          autoFocus
         />
         {isGenerating && onStop ? (
           <Button onClick={() => onStop()} type="button" size="icon" aria-label="Zastavit generování">
