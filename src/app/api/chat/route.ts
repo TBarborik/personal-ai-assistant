@@ -1,7 +1,13 @@
-import { GENERAL_SYSTEM_PROMPT, models, requestSchema } from "@/lib/ai/models";
+import {
+  CITATION_SYSTEM_PROMPT,
+  DOCUMENT_SYSTEM_PROMPT,
+  ERROR_SYSTEM_PROMPT,
+  GENERAL_SYSTEM_PROMPT,
+  models,
+  requestSchema,
+} from "@/lib/ai/models";
 import { tools } from "@/lib/ai/tools";
-import { getCurrentTime } from "@/lib/ai/tools/get-current-time";
-import { webSearch } from "@/lib/ai/tools/web-search";
+import { createLimitedWebSearch } from "@/lib/ai/tools/web-search";
 import { saveMessage } from "@/lib/db/messages";
 import { prisma } from "@/lib/db/prisma";
 import {
@@ -71,12 +77,55 @@ export async function POST(request: Request) {
       reasoning: "all",
     }),
     maxOutputTokens: 5_000,
-    instructions: GENERAL_SYSTEM_PROMPT.replaceAll(
-      "{{model}}",
-      models[model].modelId,
-    ),
-    tools,
-    stopWhen: stepCountIs(5)
+    instructions: `
+      ${GENERAL_SYSTEM_PROMPT.replaceAll("{{model}}", models[model].modelId)}
+      ${ERROR_SYSTEM_PROMPT}
+      ${DOCUMENT_SYSTEM_PROMPT}
+      ${CITATION_SYSTEM_PROMPT}
+    `,
+    tools: {
+      ...tools,
+      webSearch: createLimitedWebSearch(2),
+    },
+    stopWhen: stepCountIs(3),
+    prepareStep: ({ stepNumber }) => {
+      if (stepNumber === 2) {
+        return {
+          activeTools: [],
+          toolChoice: "none",
+        };
+      }
+    },
+    onStepEnd: ({
+      stepNumber,
+      finishReason,
+      usage,
+      toolCalls,
+      toolResults,
+    }) => {
+      if (process.env.NODE_ENV !== "development") return;
+
+      //console.log("[AGENT]", {
+      //  step: stepNumber + 1,
+      //  finishReason,
+      //  usage,
+      //  tools: toolCalls.map((call) => call.toolName),
+      //  toolResultChars: JSON.stringify(toolResults).length,
+      //});
+    },
+    onEnd: ({ usage, steps }) => {
+      if (process.env.NODE_ENV !== "development") return;
+      
+      //console.log("[TOTAL]", {
+      //  steps: steps.length,
+      //  inputTokens: usage.inputTokens,
+      //  outputTokens: usage.outputTokens,
+      //  totalTokens: usage.totalTokens,
+      //})
+    },
+    onError: ({ error }) => {
+      //console.log("[AI STREAM ERROR]", error);
+    },
   });
 
   return createUIMessageStreamResponse({

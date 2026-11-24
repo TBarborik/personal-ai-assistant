@@ -91,7 +91,7 @@ export function ChatScreen({ id, initialMessages }: ChatScreenProps) {
     <>
       <ChatMessages messages={messages} conversationId={id} status={status} />
       {error && (
-        <Alert>
+        <Alert className="max-w-3xl mb-2" variant="destructive">
           <AlertTitle>Chyba</AlertTitle>
           <AlertDescription>Nepodařilo se získat odpověď</AlertDescription>
         </Alert>

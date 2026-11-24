@@ -1,4 +1,4 @@
-import { webSearchResultsSchema } from "@/lib/ai/schemas/web-search";
+import { WebSearchResults, webSearchResultsSchema } from "@/lib/ai/schemas/web-search";
 import { searchCache } from "@/lib/cache/search";
 import { formatTextToNormalize } from "@/lib/format";
 import { tool } from "ai";
@@ -27,7 +27,6 @@ export const webSearch = tool({
     });
 
     const cached = searchCache.get(cachedKey)
-    console.log(cached === undefined ? `Cache miss: ${normalizedQuery}` : `Cache hit: ${normalizedQuery}`);
     if (cached !== undefined)
         return cached;
 
@@ -54,10 +53,33 @@ export const webSearch = tool({
         throw new Error(`Tavily search failed: ${response.status}.`)
     }
 
-    const data = searchResponseSchema.parse(await response.json())
+    const data = prepareSearchResults(searchResponseSchema.parse(await response.json()).results)
 
-    searchCache.set(cachedKey, data.results)
+    searchCache.set(cachedKey, data)
 
-    return data.results;
+    return data;
   },
 });
+
+export function createLimitedWebSearch(maxWebSearchCalls: number) {
+  let calls = 0;
+
+  return {
+    ...webSearch,
+    execute: async(...args: Parameters<NonNullable<typeof webSearch.execute>>) => {
+      if (calls >= maxWebSearchCalls) {
+        throw new Error("Web Search limit reached for this request.")
+      }
+
+      calls++;
+      return webSearch.execute!(...args)
+    }
+  }
+}
+
+function prepareSearchResults(results: WebSearchResults): WebSearchResults {
+  return results.slice(0, MAX_RESULTS).map((result) => ({
+    ...result,
+    content: result.content.slice(0, 500)
+  }))
+}

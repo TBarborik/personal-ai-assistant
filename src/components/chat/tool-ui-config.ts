@@ -1,6 +1,7 @@
 import { Clock, CloudSun, FileSearch, Globe, LucideIcon, MapPinSearch, Wrench } from "lucide-react";
 import { ComponentType } from "react";
 import { WebSearchDetails } from "./tool-details/web-search-details";
+import { DocumentSearchDetails } from "./tool-details/document-search-details";
 
 export type ToolDetailsProps = {
   input?: unknown;
@@ -33,7 +34,8 @@ export const toolConfig = {
     icon: FileSearch,
     running: "Prohledávám dokumenty...",
     completed: "Dokumenty prohledány",
-    failed: "Nepodařilo se prohledat dokumenty"
+    failed: "Nepodařilo se prohledat dokumenty",
+    details: DocumentSearchDetails
   },
   currentWeather: {
     icon: CloudSun,

@@ -1,6 +1,5 @@
 import "server-only";
 import { prisma } from "./prisma";
-import { metadata } from "@/app/layout";
 import { validateUIMessages } from "ai";
 import { AppUIMessage } from "../ai/types";
 

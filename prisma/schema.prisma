@@ -34,3 +34,39 @@ model Message {
   @@id([conversationId, id])
   @@index([conversationId, createdAt])
 }
+
+model Document {
+  id           String          @id @default(uuid())
+  name         String
+  storageKey   String          @unique
+  mimeType     String
+  size         Int
+  status       DocumentStatus  @default(UPLOADED)
+  errorMessage String?         @db.Text
+  content      String?         @db.LongText
+  chunks       DocumentChunk[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  indexedAt DateTime?
+}
+
+model DocumentChunk {
+  id             String   @id @default(uuid())
+  documentId     String
+  position       Int
+  content        String   @db.Text
+  createdAt      DateTime @default(now())
+  document       Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  embedding      Json?
+  embeddingModel String?
+
+  @@unique([documentId, position])
+}
+
+enum DocumentStatus {
+  UPLOADED
+  PROCESSING
+  READY
+  FAILED
+}
