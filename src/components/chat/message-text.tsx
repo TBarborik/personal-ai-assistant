@@ -18,10 +18,12 @@ export function MessageText({ text, sources, straming }: MessageTextProps) {
       allowedTags={{ "doc-citation": ["chunk_id"] }}
       components={{
         "doc-citation": ({ chunk_id }) => {
-          console.log(chunk_id)
-          const source = chunk_id && typeof chunk_id === "string" ? sources.get(chunk_id) : undefined;
+          const source =
+            chunk_id && typeof chunk_id === "string"
+              ? sources.get(chunk_id)
+              : undefined;
           if (!source) return null;
-          
+
           return <DocumentCitation source={source} />;
         },
       }}
