@@ -46,8 +46,8 @@ model Document {
   content      String?         @db.LongText
   chunks       DocumentChunk[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   indexedAt DateTime?
 }
 
@@ -62,6 +62,49 @@ model DocumentChunk {
   embeddingModel String?
 
   @@unique([documentId, position])
+}
+
+model Usage {
+  id               String      @id @default(uuid())
+  conversationId   String?
+  messageId        String?
+  provider         String
+  model            String
+  inputTokens      Int?
+  outputTokens     Int?
+  totalTokens      Int?
+  cacheReadTokens  Int?
+  cacheWriteTokens Int?
+  reasoningTokens  Int?
+  durationMs       Int?
+  stepCount        Int
+  toolCallCount    Int
+  finishReason     String
+  steps            UsageStep[]
+  createdAt        DateTime    @default(now())
+
+  @@index([createdAt])
+  @@index([provider, model, createdAt])
+  @@index([conversationId, messageId])
+}
+
+model UsageStep {
+  int              String  @id @default(uuid())
+  usage            Usage?  @relation(fields: [usageId], references: [id], onDelete: Cascade)
+  usageId          String?
+  position         Int
+  provider         String
+  model            String
+  inputTokens      Int?
+  outputTokens     Int?
+  totalTokens      Int?
+  cacheReadTokens  Int?
+  cacheWriteTokens Int?
+  reasoningTokens  Int?
+  finishReason     String
+  toolCalls        Json
+
+  @@unique([usageId, position])
 }
 
 enum DocumentStatus {

@@ -1,3 +1,4 @@
+import { recordUsage } from "@/lib/ai/analytics/record-usage";
 import {
   CITATION_SYSTEM_PROMPT,
   DOCUMENT_SYSTEM_PROMPT,
@@ -20,6 +21,7 @@ import {
   toUIMessageStream,
   validateUIMessages,
 } from "ai";
+import { randomUUID } from "node:crypto";
 
 export async function POST(request: Request) {
   const parsed = requestSchema.safeParse(await request.json());
@@ -70,15 +72,20 @@ export async function POST(request: Request) {
 
   await saveMessage(conversationId, lastMessage);
 
+  const selectedModel = models[model];
+  const modelMessages = pruneMessages({
+    messages: await convertToModelMessages(validatedMessages),
+    reasoning: "all",
+  });
+  const assistantMessageId = randomUUID();
+  const generationStartedAt = performance.now();
+
   const result = streamText({
-    model: models[model],
-    messages: pruneMessages({
-      messages: await convertToModelMessages(validatedMessages),
-      reasoning: "all",
-    }),
+    model: selectedModel,
+    messages: modelMessages,
     maxOutputTokens: 5_000,
     instructions: `
-      ${GENERAL_SYSTEM_PROMPT.replaceAll("{{model}}", models[model].modelId)}
+      ${GENERAL_SYSTEM_PROMPT.replaceAll("{{model}}", selectedModel.modelId)}
       ${ERROR_SYSTEM_PROMPT}
       ${DOCUMENT_SYSTEM_PROMPT}
       ${CITATION_SYSTEM_PROMPT}
@@ -113,18 +120,24 @@ export async function POST(request: Request) {
       //  toolResultChars: JSON.stringify(toolResults).length,
       //});
     },
-    onEnd: ({ usage, steps }) => {
-      if (process.env.NODE_ENV !== "development") return;
-      
-      //console.log("[TOTAL]", {
-      //  steps: steps.length,
-      //  inputTokens: usage.inputTokens,
-      //  outputTokens: usage.outputTokens,
-      //  totalTokens: usage.totalTokens,
-      //})
+    onEnd: async ({ usage, steps, finishReason }) => {
+      const durationMs = Math.round(performance.now() - generationStartedAt);
+      try {
+        await recordUsage({
+          conversationId: conversationId,
+          messageId: assistantMessageId,
+          model: selectedModel,
+          usage: usage,
+          steps: steps,
+          durationMs: durationMs,
+          finishReason: finishReason,
+        });
+      } catch (err) {
+        console.error("[ANALYTICT]", err);
+      }
     },
     onError: ({ error }) => {
-      //console.log("[AI STREAM ERROR]", error);
+      console.log("[AI STREAM ERROR]", error);
     },
   });
 
@@ -132,7 +145,7 @@ export async function POST(request: Request) {
     stream: toUIMessageStream({
       stream: result.stream,
       originalMessages: validatedMessages,
-      generateMessageId: () => crypto.randomUUID(),
+      generateMessageId: () => assistantMessageId,
       messageMetadata: ({ part }) => {
         if (part.type === "finish")
           return { usage: part.totalUsage, model: model };
