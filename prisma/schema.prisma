@@ -70,6 +70,7 @@ model Usage {
   messageId        String?
   provider         String
   model            String
+  costUsd          Decimal?    @db.Decimal(18, 10)
   inputTokens      Int?
   outputTokens     Int?
   totalTokens      Int?
@@ -89,12 +90,13 @@ model Usage {
 }
 
 model UsageStep {
-  int              String  @id @default(uuid())
-  usage            Usage?  @relation(fields: [usageId], references: [id], onDelete: Cascade)
+  int              String   @id @default(uuid())
+  usage            Usage?   @relation(fields: [usageId], references: [id], onDelete: Cascade)
   usageId          String?
   position         Int
   provider         String
   model            String
+  costUsd          Decimal? @db.Decimal(18, 10)
   inputTokens      Int?
   outputTokens     Int?
   totalTokens      Int?
