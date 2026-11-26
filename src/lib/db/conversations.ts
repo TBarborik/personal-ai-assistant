@@ -41,7 +41,7 @@ export async function getConversationMessages(id: string) {
 }
 
 
-export async function listConversations() {
+export async function listConversations(limit: number | null = null) {
     return prisma.conversation.findMany({
         select: {
             id: true,
@@ -50,6 +50,7 @@ export async function listConversations() {
         },
         orderBy: {
             updatedAt: "desc"
-        }
+        },
+        take: limit ?? undefined
     })
 }

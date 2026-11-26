@@ -24,7 +24,7 @@ export function ConversationList() {
     async function load() {
       ac = new AbortController();
       try {
-        const response = await fetch("/api/conversations", {
+        const response = await fetch("/api/conversations?limit=20", {
           signal: ac.signal,
           cache: "no-store",
         });
