@@ -1,6 +1,8 @@
 import { AnalyticsOverview } from "@/components/analytics/analytics-overview";
 import { AnalyticsSkeleton } from "@/components/analytics/analytics-skeleton";
-import { getUsageSummary } from "@/lib/db/usage";
+import { TokenChart } from "@/components/analytics/token-chart";
+import { prepareChartData } from "@/lib/ai/analytics/chart-data";
+import { getDailyUsage, getUsageSummary } from "@/lib/db/usage";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
@@ -27,7 +29,13 @@ async function AnalyticsContent() {
 
     const to = new Date();
     const from = new Date(to.getTime() - 30*24*60*60*1_000)
-    const summary = await getUsageSummary(from, to);
+    const [summary, dailyUsage] = await Promise.all([getUsageSummary(from, to), getDailyUsage(from, to)]);
+    const chartData = prepareChartData(dailyUsage, from, to)
 
-    return <AnalyticsOverview summary={summary} />
+    return (
+        <div className="space-y-6">
+            <AnalyticsOverview summary={summary} />
+            <TokenChart data={chartData.tokenData} />
+        </div>
+    )
 }
