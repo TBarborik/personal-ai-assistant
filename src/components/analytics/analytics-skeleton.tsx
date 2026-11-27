@@ -21,13 +21,39 @@ export function AnalyticsSkeleton() {
         ))}
       </div>
 
+      {Array.from({ length: 2 }, (_, idx) => (
+        <Card key={idx}>
+          <CardHeader className="space-y-2">
+            <Skeleton className="h-5 w-40"></Skeleton>
+            <Skeleton className="h-4 w-64"></Skeleton>
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-[280px] w-full" />
+          </CardContent>
+        </Card>
+      ))}
+
       <Card>
         <CardHeader className="space-y-2">
-          <Skeleton className="h-5 w-40"></Skeleton>
-          <Skeleton className="h-4 w-64"></Skeleton>
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-4 w-64" />
         </CardHeader>
+
+        <CardContent className="space-y-3">
+          {Array.from({ length: 3 }, (_, index) => (
+            <Skeleton key={index} className="h-8 w-full" />
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="space-y-2">
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-4 w-64" />
+        </CardHeader>
+
         <CardContent>
-          <Skeleton className="h-[280px] w-full" />
+          <Skeleton className="h-[200px] w-full" />
         </CardContent>
       </Card>
     </div>

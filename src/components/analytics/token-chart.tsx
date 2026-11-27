@@ -9,11 +9,11 @@ import { formatChartDate, formatNumber } from "@/lib/ai/analytics/format";
 const chartConfig = {
     input: {
         label: "Vstupní tokeny",
-        color: "#3b82f6"
+        color: "var(--chart-1)"
     },
     output: {
         label: "Výstupní tokeny",
-        color: "#10b981"
+        color: "var(--chart-2)"
     }
 } satisfies ChartConfig;
 

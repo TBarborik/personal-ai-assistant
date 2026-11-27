@@ -21,10 +21,7 @@ function getTokenData(messages: AppUIMessage[]): TokenData[] {
   let total = 0;
 
   return messages
-    .filter(
-      (message) =>
-        message.role === "assistant" && message.metadata?.usage != null,
-    )
+    .filter((message) => message.role === "assistant" && message.metadata?.usage != null)
     .map((message, idx) => {
       const usage = message.metadata!.usage!;
       const input = usage.inputTokens ?? 0;
@@ -36,7 +33,7 @@ function getTokenData(messages: AppUIMessage[]): TokenData[] {
         input,
         output,
         total,
-        model: message.metadata?.model
+        model: message.metadata?.model,
       };
     });
 }
@@ -44,53 +41,38 @@ function getTokenData(messages: AppUIMessage[]): TokenData[] {
 const chartConfig = {
   input: {
     label: "Vstupní tokeny ",
-    color: "#3b82f6", // blue-500
+    color: "var(--chart-1)",
   },
   output: {
     label: "Výstupní tokeny ",
-    color: "#10b981", // emerald-500
+    color: "var(--chart-2)",
   },
   total: {
     label: "Celkové tokeny ",
-    color: "#f59e0b", // amber-500
+    color: "var(--chart-3)",
   },
 } satisfies ChartConfig;
 
-export function TokenUsageChart({
-    messages
-}: TokenUsageChartProps) {
-    const data = getTokenData(messages)
+export function TokenUsageChart({ messages }: TokenUsageChartProps) {
+  const data = getTokenData(messages);
 
-    if (!data.length)
-        return (<p className="text-sm text-muted-foreground">
-            Zatím nejsou dostupná data o spotřebě.
-        </p>)
+  if (!data.length) return <p className="text-sm text-muted-foreground">Zatím nejsou dostupná data o spotřebě.</p>;
 
-    return (
-        <ChartContainer config={chartConfig} className="h-[250px] w-full">
-            <LineChart accessibilityLayer data={data}>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                    dataKey="message"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    allowDecimals={false}
-                />
+  return (
+    <ChartContainer config={chartConfig} className="h-[250px] w-full">
+      <LineChart accessibilityLayer data={data}>
+        <CartesianGrid vertical={false} />
+        <XAxis dataKey="message" tickLine={false} axisLine={false} tickMargin={8} allowDecimals={false} />
 
-                <YAxis
-                    tickLine={false}
-                    axisLine={false}
-                    width={50}
-                />
+        <YAxis tickLine={false} axisLine={false} width={50} />
 
-                <ChartTooltip content={<ChartTooltipContent className="min-w-48" />} />
-                <ChartLegend content={<ChartLegendContent />} />
+        <ChartTooltip content={<ChartTooltipContent className="min-w-48" />} />
+        <ChartLegend content={<ChartLegendContent />} />
 
-                <Line dataKey="input" stroke="var(--color-input)" strokeWidth={2} dot/>
-                <Line dataKey="output" stroke="var(--color-output)" strokeWidth={2} dot/>
-                <Line dataKey="total" stroke="var(--color-total)" strokeWidth={2} dot/>
-            </LineChart>
-        </ChartContainer>
-    )
+        <Line dataKey="input" stroke="var(--color-input)" strokeWidth={2} dot />
+        <Line dataKey="output" stroke="var(--color-output)" strokeWidth={2} dot />
+        <Line dataKey="total" stroke="var(--color-total)" strokeWidth={2} dot />
+      </LineChart>
+    </ChartContainer>
+  );
 }

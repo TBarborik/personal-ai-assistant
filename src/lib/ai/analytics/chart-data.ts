@@ -1,21 +1,19 @@
 import { DailyUsage } from "@/lib/db/usage";
+import { getAnalyticsDay, shiftAnalyticsDay } from "./date";
 
 export function prepareChartData(rows: DailyUsage, from: Date, to: Date) {
   const providers = Array.from(new Set(rows.map((row) => row.provider))).sort();
   const days = new Map<string, { day: string; input: number | null; output: number | null; costs: Record<string, number | null> }>();
 
-  const cursor = new Date(from);
-  cursor.setUTCHours(0, 0, 0, 0);
+  const lastDay = getAnalyticsDay(new Date(to.getTime() - 1));
 
-  while (cursor < to) {
-    const day = cursor.toISOString().slice(0, 10);
+  for (let day = getAnalyticsDay(from); day <= lastDay; day = shiftAnalyticsDay(day, 1)) {
     days.set(day, {
       day: day,
       input: 0,
       output: 0,
       costs: Object.fromEntries(providers.map((provider) => [provider, 0])),
     });
-    cursor.setUTCDate(cursor.getUTCDate() + 1)
   }
 
   for (const row of rows) {
